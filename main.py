@@ -31,7 +31,28 @@ class TextEditorFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
 
+        self.nested_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.buttons = []
+        for i in range(0,6):
+            self.buttons.append(wx.Button(self, -1, f"Button &{i}"))
+            self.nested_sizer.Add(self.buttons[i], 1, wx.EXPAND)
+
+        urgent_button = self.buttons[2]
+        self.Bind(wx.EVT_BUTTON, self.OnButton2Click, urgent_button)
+
+        self.parent_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.parent_sizer.Add(self.control, 1, wx.EXPAND)
+        self.parent_sizer.Add(self.nested_sizer, 0, wx.EXPAND)
+
+        self.SetSizer(self.parent_sizer)
+        self.SetAutoLayout(1)
+        self.parent_sizer.Fit(self)
+
         self.Show(True)
+
+    def OnButton2Click(self, e):
+        print("Button2 was pressed!")
+
 
     def OnAbout(self, e):
         dlg = wx.MessageDialog(self, "A small TE", "Title")
