@@ -5,7 +5,7 @@ import wx
 
 class TextEditorFrame(wx.Frame):
     def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, title=title, size=(480,272))
+        wx.Frame.__init__(self, parent, title=title, size=(480, 272))
         self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         self.CreateStatusBar()
 
@@ -20,8 +20,6 @@ class TextEditorFrame(wx.Frame):
         properties_menu = wx.Menu()
         menuProperties = properties_menu.Append(wx.ID_PROPERTIES, "&Config", "Конфигурация")
 
-
-
         # Create the menu bar
         menu_bar = wx.MenuBar()
         menu_bar.Append(file_menu, "&File")
@@ -32,7 +30,6 @@ class TextEditorFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
-
 
         self.Show(True)
 
@@ -46,7 +43,7 @@ class TextEditorFrame(wx.Frame):
 
     def OnOpen(self, e):
         # Открытие файла
-        self.dir_name =""
+        self.dir_name = ""
         dlg = wx.FileDialog(self, "Выберите файл: ", self.dir_name, "", "*.*", wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.file_name = dlg.GetFilename()
@@ -55,7 +52,6 @@ class TextEditorFrame(wx.Frame):
             self.control.SetValue(f.read())
             f.close()
         dlg.Destroy()
-
 
 
 app = wx.App(False)  # Create a new app, don't redirect stdout/stderr to a window.
