@@ -1,67 +1,118 @@
-import os.path
+import wx
 
 import wx
 
 
-class EditorPanel(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
-        self.quote = wx.StaticText(self, label="Ваша ставка :", pos=(20, 30))
+class Selection(wx.Frame):
 
-        self.logger = wx.TextCtrl(self, pos=(300, 20), size=(200, 300), style=wx.TE_MULTILINE | wx.TE_READONLY)
+    def __init__(self, parent, title, list_items):
+        style = wx.SYSTEM_MENU | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX
+        wx.Frame.__init__(self, parent, title=title, style=style)
+        self.SetIcon(wx.Icon("app_logo.png"))
+        self.list_items = sorted(list_items)  # Сортировка в алфавитном порядке
+        self.InitUI()
 
-        self.button = wx.Button(self, label="Save", pos=(200, 325))
-        self.Bind(wx.EVT_BUTTON, self.OnClick, self.button)
+    def InitUI(self):
 
-        self.lblname = wx.StaticText(self, label="Your name :", pos=(20, 60))
-        self.editname = wx.TextCtrl(self, value="Enter here your name", pos=(150, 60), size=(140, -1))
-        self.Bind(wx.EVT_TEXT, self.EvtText, self.editname)
-        self.Bind(wx.EVT_CHAR, self.EvtChar, self.editname)
+        panel = wx.Panel(self)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.sampleList = ['friends', 'advertising', 'web search', 'Yellow Pages']
-        self.lblhear = wx.StaticText(self, label="How did you hear from us ?", pos=(20, 90))
-        self.edithear = wx.ComboBox(self, pos=(150, 90), size=(95, -1), choices=self.sampleList, style=wx.CB_DROPDOWN)
-        self.Bind(wx.EVT_COMBOBOX, self.EvtComboBox, self.edithear)
-        self.Bind(wx.EVT_TEXT, self.EvtText, self.edithear)
+        self.listbox = wx.ListBox(panel, style=wx.LB_SORT)
 
-        # Checkbox
-        self.insure = wx.CheckBox(self, label="Do you want Insured Shipment ?", pos=(20, 180))
-        self.Bind(wx.EVT_CHECKBOX, self.EvtCheckBox, self.insure)
+        if isinstance(self.list_items, list) and len(self.list_items):
+            for item in self.list_items:
+                self.listbox.Append(item)
 
-        # Radio Boxes
-        radioList = ['blue', 'red', 'yellow', 'orange', 'green', 'purple', 'navy blue', 'black', 'gray']
-        rb = wx.RadioBox(self, label="What color would you like ?", pos=(20, 210), choices=radioList, majorDimension=3,
-        style = wx.RA_SPECIFY_COLS)
+        hbox.Add(self.listbox, wx.ID_ANY, wx.EXPAND | wx.ALL, 20)
 
-        self.Bind(wx.EVT_RADIOBOX, self.EvtRadioBox, rb)
+        btnPanel = wx.Panel(panel)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        SelBtn = wx.Button(btnPanel, wx.ID_ANY, 'Select', size=(90, 30))
+        newBtn = wx.Button(btnPanel, wx.ID_ANY, 'New', size=(90, 30))
+        renBtn = wx.Button(btnPanel, wx.ID_ANY, 'Rename', size=(90, 30))
+        delBtn = wx.Button(btnPanel, wx.ID_ANY, 'Delete', size=(90, 30))
+        searchExpectedResults = wx.TextCtrl(btnPanel, -1, "", size=(90, 30))
 
-    def EvtRadioBox(self, event):
-        self.logger.AppendText('EvtRadioBox: %d\n' % event.GetInt())
+        quote = wx.StaticText(btnPanel, label="Поиск элемента", pos=(20, 30))
 
-    def EvtComboBox(self, event):
-        self.logger.AppendText('EvtComboBox: %s\n' % event.GetString())
+        self.Bind(wx.EVT_BUTTON, self.NewItem, id=newBtn.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnRename, id=renBtn.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnDelete, id=delBtn.GetId())
+        self.Bind(wx.EVT_BUTTON, self.OnSelect, id=SelBtn.GetId())
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.OnRename)
+        self.Bind(wx.EVT_TEXT, self.OnChar, id=searchExpectedResults.GetId())
 
-    def OnClick(self, event):
-        self.logger.AppendText(" Click on object with Id %d\n" % event.GetId())
+        #vbox.Add((-1, 20))
+        vbox.Add(quote)
+        vbox.Add(searchExpectedResults, 0, wx.TOP)
+        vbox.Add(SelBtn, 0, wx.TOP, 5)
+        vbox.Add(newBtn, 0, wx.TOP, 5)
+        vbox.Add(renBtn, 0, wx.TOP, 5)
+        vbox.Add(delBtn, 0, wx.TOP, 5)
 
-    def EvtText(self, event):
-        self.logger.AppendText('EvtText: %s\n' % event.GetString())
+        btnPanel.SetSizer(vbox)
+        hbox.Add(btnPanel, 0.6, wx.EXPAND | wx.RIGHT, 20)
+        panel.SetSizer(hbox)
 
-    def EvtChar(self, event):
+        self.Centre()
+        self.Show()
 
-        self.logger.AppendText('EvtChar: %d\n' % event.GetKeyCode())
-        event.Skip()
+    def OnChar(self, event):
+        typed_chars = event.GetString()
+        print(typed_chars)
+        #TODO: ВЫВОД ЭЛЕМЕНТА
+        length = self.listbox.GetCount()
+        temp =[]
+        for idx in range(length):
+            temp.append(self.listbox.GetString(idx))
 
-    def EvtCheckBox(self, event):
-        print(type(event))
-        self.logger.AppendText('EvtCheckBox: %d\n' % event.IsChecked())
+        print(f"User_list:{self.list_items}, count:{len(self.list_items)}")
+        print(f"Listbox:{temp}, count:{length}")
+    def NewItem(self, event):
+
+        text = wx.GetTextFromUser('Задайте имя нового элемента', 'Добавить новый элемент')
+        if text != '':
+            self.list_items.append(text)
+            self.list_items = sorted(self.list_items)
+            self.listbox.Append(text)
+
+    def OnRename(self, event):
+
+        selected_item = self.listbox.GetSelection()
+        text = self.listbox.GetString(selected_item)
+        new_name = wx.GetTextFromUser('Задайте новое имя элемента', 'Переименовать элемент', text)
+
+        if new_name != '':
+            del self.list_items[selected_item]
+            self.list_items.append(new_name)
+            self.list_items = sorted(self.list_items)
+
+            self.listbox.Delete(selected_item)
+
+            item_id = self.listbox.Append(new_name)
+            self.listbox.SetSelection(item_id)  # Выделение переименованного эл-та
+
+    def OnSelect(self, event):
+        selected_item = self.listbox.GetSelection()
+        text = self.listbox.GetString(selected_item)
+        print(f"Selected ITEM: {text}")
+        #TODO: Сохранение выбранного элемента, модифицированного входного списка
+        self.Close(True)  # Close the frame
+
+    def OnDelete(self, event):
+        selected_item = self.listbox.GetSelection()
+
+        if selected_item != -1:
+            deleted_element = self.listbox.GetString(selected_item)
+            self.list_items.remove(deleted_element)
+            self.listbox.Delete(selected_item)
 
 
-app = wx.App(False)  # Create a new app, don't redirect stdout/stderr to a window.
-frame = wx.Frame(None, title="Testing")
+def main():
+    app = wx.App()
+    ex = Selection(None, "ОБОЗНАЧЕНИЕ", ["TFT", "LCD", "GPI_MU", "MODB"])
+    app.MainLoop()
 
-nb = wx.Notebook(frame)
-nb.AddPage(EditorPanel(nb), "#1")
-nb.AddPage(EditorPanel(nb), "#2")
-frame.Show()
-app.MainLoop()
+
+if __name__ == '__main__':
+    main()
