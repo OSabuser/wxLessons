@@ -72,10 +72,11 @@ class ValueSetupDialog(wx.Dialog):
 
 class CodeSelection(wx.Frame):
     def __init__(self, parent, title, list_items):
-        style = wx.SYSTEM_MENU | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX
+        style = wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX
         wx.Frame.__init__(self, parent, title=title, style=style)
         self.SetIcon(wx.Icon("app_logo.png"))
         self.SetTitle(title)
+        self.SetSize((500, 275))
         self.__names = {"Name": "", "Comment": ""}
         self.__list_items = list_items
 
