@@ -1,55 +1,53 @@
 import os
 from gen_wizard import wx, CodeGenerationWizard, CodeGenerationWizardPage
 from usr_data import ParametersDataBase
-
+import configparser
 
 def main():
-    app = wx.App()
+    config = configparser.ConfigParser()
 
-    data = [('TFT', 'TFT дисплеи'), ('LCD', 'ЖКИ'),
-            ('DOT', 'Точечные индикаторы'), ('GPI', 'Имитатор протоколов СУЛ'),
-            ('MODB', 'Modbus to CAN конвертер')]
-
-    data2 = [('4', 'TFT'), ('7', 'TFT'),
-             ('8', 'TFT'), ('10', 'TFT'),
-             ('32', 'LCD'), ('54', 'LCD')]
-
-    data3 = [('01', 'Короткий шлейф'), ('02', 'Длинный шлейф'),
-             ('NN', 'Не имеет значения')]
+    config.read('code_database.ini', encoding="utf-8")
 
     tester = ParametersDataBase()
-    tester.add_user_data("ОБОЗНАЧЕНИЕ", data)
-    tester.add_user_data("РАЗМЕР", data2)
-    tester.add_user_data("ТИП МАТРИЦЫ", data3)
 
-    tester.set_user_data("РАЗМЕР", -1, ("Для тестов", "TFT77"))
-    tester.set_user_data("ОБОЗНАЧЕНИЕ", 2, ("111", "222"), append=False)
+    # Считывание данных посекционно в объект - базу-данных tester
+    for section in config.sections():
+        tester.add_user_data(section, [(key.upper(), config[section][key]) for key in config[section]])
 
-    tester.show_user_data("ОБОЗНАЧЕНИЕ")
-    tester.show_user_data("РАЗМЕР")
+    pages = []
 
-    tester.delete_user_data("ОБОЗНАЧЕНИЕ", 2)
-    tester.show_user_data("ОБОЗНАЧЕНИЕ")
-
+    app = wx.App()
     wizard = CodeGenerationWizard(None, wx.ID_ANY, "Software S/N Gen v1.0")
-    page1 = CodeGenerationWizardPage(wizard, "ОБОЗНАЧЕНИЕ", tester, 0)
-    page2 = CodeGenerationWizardPage(wizard, "РАЗМЕР", tester, 1)
-    page3 = CodeGenerationWizardPage(wizard, "ТИП МАТРИЦЫ", tester, 2)
 
-    wizard.FitToPage(page1)
+    # Создание страниц wx.adv.wizard, заполнение их данными из файла code_database
+    for idx, key in enumerate(tester.get_all_keys()):
+        pages.append(CodeGenerationWizardPage(wizard, key, tester, idx))
+
+    wizard.FitToPage(pages[0])
 
     # Set the initial order of the pages
-    page1.SetNext(page2)
-    page2.SetPrev(page1)
-    page2.SetNext(page3)
-    page3.SetPrev(page2)
+    for number in range(len(pages) - 1):
+        pages[number].SetNext(pages[number + 1])
+        pages[number + 1].SetPrev(pages[number])
 
-    wizard.GetPageAreaSizer().Add(page1)
-    state = wizard.RunWizard(page1)
+    wizard.GetPageAreaSizer().Add(pages[0])
+    state = wizard.RunWizard(pages[0])
 
-    # Работа объекта wizard завершена!
+    # Работа объекта CodeGenerationWizard завершена!
     if state:
         print(f"Шифр ПО:  {'.'.join(tester.get_software_code())}")
+        #debug --> print(tester.show_user_data(config.sections()[0]))
+
+        # Запись изменений в файл
+        config = configparser.ConfigParser()
+
+        for key in tester.get_all_keys():
+            config[key] = {}
+            for data in tester.get_user_data(key):
+                config[key][data[0]] = data[1]
+
+        with open('code_database.ini', 'w', encoding="utf-8") as configfile:
+            config.write(configfile)
 
     wizard.Destroy()
     app.MainLoop()

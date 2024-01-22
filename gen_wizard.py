@@ -32,13 +32,13 @@ class CodeGenerationWizard(wx.adv.Wizard):
         # Debug ---> page = event.GetPage()
         # Debug ---> print(f"Номер версии ПО:    {'.'.join(self.__data_class.get_software_code())}")
         # Debug ---> if page.GetNext() is None:
-            # Debug ---> self.__last_page = page
-            # Debug ---> print("Последняя страница!")
-
+        # Debug ---> self.__last_page = page
+        # Debug ---> print("Последняя страница!")
 
 
 class CodeGenerationWizardPage(wx.adv.WizardPage):
     """"""
+
     # ----------------------------------------------------------------------
     def __init__(self, parent, title, data_base_instance, page_number):
         """Constructor"""
@@ -152,9 +152,12 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
 
     def OnSelect(self, event):
         # Снятие выделения с ранее выбранного элемента
-        self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(0, 0, 0))
+        if self.__cur_sel_item < self.list.GetItemCount():
+            self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour("black"))
+
         selected_item = self.list.GetFirstSelected()
         self.__cur_sel_item = selected_item
+
         if self.__cur_sel_item != -1:
             # Активировать кнопку "Далее"
             self.FindWindowById(wx.ID_FORWARD).Enable()
@@ -162,12 +165,12 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
             self.__cur_sel_item = selected_item
             text = self.list.GetItemText(self.__cur_sel_item, col=0)
             # Debug --->print(f"Selected ITEM: {text}, index: {self.__cur_sel_item}")
-            self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(255, 0, 0))  # Выделение выбранного элемента
+            # Выделение выбранного элемента
+            self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour("red"))
 
-            # TODO: Сохранение выбранного элемента, модифицированного входного списка
+            # Добавление очередной части кода
             self.__data_class.add_part_to_software_code(self.__page_number, text)
-            # Debug --->
-            print(f"code:{self.__data_class.get_software_code()}")
+            # Debug --->print(f"code:{self.__data_class.get_software_code()}")
         else:
             self.FindWindowById(wx.ID_FORWARD).Disable()
 

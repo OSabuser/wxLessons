@@ -12,6 +12,12 @@ class ParametersDataBase:
     def get_software_code(self):
         return self.__software_code
 
+    def show_all_keys(self):
+        print(list(self.__user_data.keys()))
+
+    def get_all_keys(self):
+        return self.__user_data.keys()
+
     def add_part_to_software_code(self, idx, part):
         temp = len(self.__software_code)
         if idx < temp:
