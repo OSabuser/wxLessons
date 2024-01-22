@@ -46,6 +46,10 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
         self.next = self.prev = None
         self.__names = {"Name": "", "Comment": ""}
         self.__data_class = data_base_instance
+
+        if not isinstance(self.__data_class, ParametersDataBase):
+            raise SystemExit(f"Объекту {self} передан некорректный объект {ParametersDataBase}")
+
         self.__list_items = data_base_instance.get_user_data(title)
         self.__title = title
         self.__init_UI()

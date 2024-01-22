@@ -1,9 +1,41 @@
+import os
+import configparser
+
+
 class ParametersDataBase:
-    def __init__(self):
+    def __init__(self, ini_filename):
         self.__user_data = {}
         self.__software_code = []
+        self.__config_file_path = ini_filename
+        self.__is_something_changed = False
+        self.__parse_ini_data(self.__config_file_path)
 
-    def add_user_data(self, key, data):
+    def __parse_ini_data(self, filename):
+        if os.path.isfile(filename):
+            config = configparser.ConfigParser()
+            config.read(filename, encoding="utf-8")
+            # Считывание данных посекционно в объект - базу-данных tester
+            for section in config.sections():
+                self.__add_user_data(section, [(key.upper(), config[section][key]) for key in config[section]])
+        else:
+            raise SystemExit(f"Не удалось найти файл конфигурации {filename}")
+
+    def save_changes(self):
+        if self.__is_something_changed:
+            # Запись изменений в файл
+            config = configparser.ConfigParser()
+
+            # Создание нового файла
+            for key in self.get_all_keys():
+                config[key] = {}
+                for data in self.get_user_data(key):
+                    config[key][data[0]] = data[1]
+
+            with open(self.__config_file_path, 'w', encoding="utf-8") as configfile:
+                config.write(configfile)
+
+
+    def __add_user_data(self, key, data):
         if key not in self.__user_data.keys():
             self.__user_data[key] = data
         else:
@@ -48,9 +80,11 @@ class ParametersDataBase:
     def set_user_data(self, key, idx, val, append=True):
         if key in self.__user_data.keys():
             if append:
+                self.__is_something_changed = True
                 self.__user_data[key].append(val)
             else:
                 if idx < len(self.__user_data[key]):
+                    self.__is_something_changed = True
                     self.__user_data[key][idx] = val
                 else:
                     print(f"{idx} out of range! Длина списка-value: {len(self.__user_data[key])}")
@@ -60,6 +94,7 @@ class ParametersDataBase:
     def delete_user_data(self, key, idx):
         if key in self.__user_data.keys():
             if idx < len(self.__user_data[key]):
+                self.__is_something_changed = True
                 del self.__user_data[key][idx]
             else:
                 print(f"{idx} out of range! Длина списка-value: {len(self.__user_data[key])}")
