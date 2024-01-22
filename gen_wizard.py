@@ -1,7 +1,8 @@
 import wx
 import wx.adv
 from gen_dialog import ValueSetupDialog
-from usr_data import DataTest
+from usr_data import ParametersDataBase
+
 
 class CodeGenerationWizard(wx.adv.Wizard):
     def __init__(self, parent, wiz_id, title):
@@ -9,24 +10,46 @@ class CodeGenerationWizard(wx.adv.Wizard):
         self.SetTitle(title)
         self.SetIcon(wx.Icon("app_logo.png"))
         self.Centre()
-        self.Bind(wx.adv.EVT_WIZARD_FINISHED, self.GenerationFinished, id=wiz_id)
+        self.Bind(wx.adv.EVT_WIZARD_PAGE_CHANGED, self.on_page_changing)
+
+        self.prev_btn = self.FindWindowById(wx.ID_BACKWARD)
+        self.prev_btn.SetLabel("Назад")
+        self.next_btn = self.FindWindowById(wx.ID_FORWARD)
+        self.cancel_btn = self.FindWindowById(wx.ID_CANCEL)
+        self.cancel_btn.SetLabel("Отмена")
+
+    def on_page_changing(self, event):
+        page = event.GetPage()
+        self.FindWindowById(wx.ID_FORWARD).Disable()
+        self.next_btn.SetLabel("Далее")
+
+        if page.GetNext() is None:
+            self.next_btn.SetLabel("Готово")
+            # Debug --->print("Последняя страница!")
 
     def GenerationFinished(self, event):
-        print("Воот!")
+        pass
+        # Debug ---> page = event.GetPage()
+        # Debug ---> print(f"Номер версии ПО:    {'.'.join(self.__data_class.get_software_code())}")
+        # Debug ---> if page.GetNext() is None:
+            # Debug ---> self.__last_page = page
+            # Debug ---> print("Последняя страница!")
 
 
-class CodeGenerationWizardPage(wx.adv.WizardPageSimple):
+
+class CodeGenerationWizardPage(wx.adv.WizardPage):
     """"""
     # ----------------------------------------------------------------------
-    def __init__(self, parent, title, data_base_instance):
+    def __init__(self, parent, title, data_base_instance, page_number):
         """Constructor"""
-        wx.adv.WizardPageSimple.__init__(self, parent)
-
+        wx.adv.WizardPage.__init__(self, parent)
+        self.next = self.prev = None
         self.__names = {"Name": "", "Comment": ""}
         self.__data_class = data_base_instance
         self.__list_items = data_base_instance.get_user_data(title)
         self.__title = title
         self.__init_UI()
+        self.__page_number = page_number
         self.__cur_sel_item = 0
 
     def __init_UI(self):
@@ -47,9 +70,6 @@ class CodeGenerationWizardPage(wx.adv.WizardPageSimple):
             current_list_index = self.list.InsertItem(list_index, item[0])  # Добавить имя
             self.list.SetItem(current_list_index, 1, item[1])  # Добавить комментарий
             list_index += 1
-
-        self.list.Select(0)  # Выбор первого элемента по умолчанию
-        self.list.SetItemTextColour(0, wx.Colour(255, 0, 0))  # Выделение выбранного элемента
 
         h_box.Add(self.list, 1, wx.EXPAND | wx.LEFT | wx.BOTTOM, 5)
 
@@ -72,15 +92,6 @@ class CodeGenerationWizardPage(wx.adv.WizardPageSimple):
         h_box.Add(button_panel, 0, wx.RIGHT | wx.LEFT, 5)
 
         sizer.Add(h_box, proportion=1, flag=wx.EXPAND)
-
-        prev_btn = self.FindWindowById(wx.ID_BACKWARD)
-        prev_btn.SetLabel("Назад")
-
-        cancel_btn = self.FindWindowById(wx.ID_CANCEL)
-        cancel_btn.SetLabel("Отмена")
-
-        forward_btn = self.FindWindowById(wx.ID_FORWARD)
-        forward_btn.SetLabel("Далее")
 
         self.Bind(wx.EVT_BUTTON, self.NewItem, id=new_btn.GetId())
         self.Bind(wx.EVT_BUTTON, self.OnRename, id=rename_btn.GetId())
@@ -108,6 +119,11 @@ class CodeGenerationWizardPage(wx.adv.WizardPageSimple):
             self.list.SetItem(selected_item, 0, self.__names['Name'])  # Изменить имя
             self.list.SetItem(selected_item, 1, self.__names['Comment'])  # Изменить комментарий
 
+            self.__data_class.set_user_data(self.__title, selected_item,
+                                            (self.__names['Name'], self.__names['Comment']), append=False)
+
+            # Debug --->
+            self.__data_class.show_user_data(self.__title)
             self.__names['Name'] = ""
             self.__names['Comment'] = ""
             ex.Destroy()
@@ -122,40 +138,61 @@ class CodeGenerationWizardPage(wx.adv.WizardPageSimple):
             temp = self.list.InsertItem(index, self.__names['Name'])  # Добавить имя
             self.list.SetItem(temp, 1, self.__names['Comment'])  # Добавить комментарий
 
+            self.__data_class.set_user_data(self.__title, -1, (self.__names['Name'], self.__names['Comment']))
+            # Debug --->
+            self.__data_class.show_user_data(self.__title)
+
             self.__names['Name'] = ""
             self.__names['Comment'] = ""
 
         ex.Destroy()
 
-    # TODO: объединить с ONSELECT
-    def OnDoubleClick(self,event):
-        # Снятие выделения с ранее выбранного элемента
-        self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(0, 0, 0))
-        selected_item = self.list.GetFirstSelected()
-
-        if self.__cur_sel_item != -1:
-            self.__cur_sel_item = selected_item
-            text = self.list.GetItemText(self.__cur_sel_item, col=0)
-            # Debug --->print(f"Selected ITEM: {text}, index: {self.__cur_sel_item}")
-            self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(255, 0, 0))  # Выделение выбранного элемента
-            # TODO: Сохранение выбранного элемента, модифицированного входного списка
+    def OnDoubleClick(self, event):
+        self.OnSelect(event)
 
     def OnSelect(self, event):
         # Снятие выделения с ранее выбранного элемента
         self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(0, 0, 0))
         selected_item = self.list.GetFirstSelected()
-
+        self.__cur_sel_item = selected_item
         if self.__cur_sel_item != -1:
+            # Активировать кнопку "Далее"
+            self.FindWindowById(wx.ID_FORWARD).Enable()
+
             self.__cur_sel_item = selected_item
             text = self.list.GetItemText(self.__cur_sel_item, col=0)
             # Debug --->print(f"Selected ITEM: {text}, index: {self.__cur_sel_item}")
-            self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(255,0,0)) # Выделение выбранного элемента
+            self.list.SetItemTextColour(self.__cur_sel_item, wx.Colour(255, 0, 0))  # Выделение выбранного элемента
+
             # TODO: Сохранение выбранного элемента, модифицированного входного списка
+            self.__data_class.add_part_to_software_code(self.__page_number, text)
+            # Debug --->
+            print(f"code:{self.__data_class.get_software_code()}")
+        else:
+            self.FindWindowById(wx.ID_FORWARD).Disable()
 
     def OnDelete(self, event):
         selected_item = self.list.GetFirstSelected()
         if selected_item != -1:
             self.list.DeleteItem(selected_item)
+            self.__data_class.delete_user_data(self.__title, selected_item)
+
+            # Debug --->
+            self.__data_class.show_user_data(self.__title)
             if self.list.GetItemCount() > 0:
                 self.list.Select(selected_item - 1)
 
+    def SetNext(self, next):
+        self.next = next
+
+    # ----------------------------------------------------------------------
+    def SetPrev(self, prev):
+        self.prev = prev
+
+    # ----------------------------------------------------------------------
+    def GetNext(self):
+        return self.next
+
+    # ----------------------------------------------------------------------
+    def GetPrev(self):
+        return self.prev
