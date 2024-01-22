@@ -20,7 +20,14 @@ class CodeGenerationWizard(wx.adv.Wizard):
 
     def on_page_changing(self, event):
         page = event.GetPage()
-        self.FindWindowById(wx.ID_FORWARD).Disable()
+
+        # Debug -->print(f"Page state state: {page.selection_was_made}, page: {page.get_page_number()}")
+
+        if not page.selection_was_made:
+            page.FindWindowById(wx.ID_FORWARD).Disable()
+        else:
+            page.FindWindowById(wx.ID_FORWARD).Enable()
+
         self.next_btn.SetLabel("Далее")
 
         if page.GetNext() is None:
@@ -44,6 +51,7 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
         """Constructor"""
         wx.adv.WizardPage.__init__(self, parent)
         self.next = self.prev = None
+        self.selection_was_made = False
         self.__names = {"Name": "", "Comment": ""}
         self.__data_class = data_base_instance
 
@@ -104,6 +112,8 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
         self.Bind(wx.EVT_TEXT, self.OnChar, id=search_field.GetId())
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnDoubleClick, id=self.list.GetId())
 
+    def get_page_number(self):
+        return self.__page_number
     def OnChar(self, event):
         typed_chars = event.GetString()
         possible_idx = self.list.FindItem(start=-1, str=typed_chars, partial=True)
@@ -126,8 +136,8 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
             self.__data_class.set_user_data(self.__title, selected_item,
                                             (self.__names['Name'], self.__names['Comment']), append=False)
 
-            # Debug --->
-            self.__data_class.show_user_data(self.__title)
+
+            # Debug ---> self.__data_class.show_user_data(self.__title)
             self.__names['Name'] = ""
             self.__names['Comment'] = ""
             ex.Destroy()
@@ -174,6 +184,8 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
 
             # Добавление очередной части кода
             self.__data_class.add_part_to_software_code(self.__page_number, text)
+
+            self.selection_was_made = True
             # Debug --->print(f"code:{self.__data_class.get_software_code()}")
         else:
             self.FindWindowById(wx.ID_FORWARD).Disable()

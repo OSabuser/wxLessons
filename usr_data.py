@@ -33,6 +33,8 @@ class ParametersDataBase:
 
             with open(self.__config_file_path, 'w', encoding="utf-8") as configfile:
                 config.write(configfile)
+        else:
+            print(f"В файл {self.__config_file_path} не было внесено изменений!")
 
 
     def __add_user_data(self, key, data):

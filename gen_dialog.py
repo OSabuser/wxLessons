@@ -42,9 +42,9 @@ class ValueSetupDialog(wx.Dialog):
         name_l = wx.StaticText(self, -1, "Имя элемента:")
         comment_l = wx.StaticText(self, -1, "Комментарий:")
 
-        name_t = wx.TextCtrl(self, validator=InputValidator(input_data, "Name"), size=(200, 25))  # , value=name)
+        name_t = wx.TextCtrl(self, validator=InputValidator(input_data, "Name"), size=(200, 25))
         comment_t = wx.TextCtrl(self, validator=InputValidator(input_data, "Comment"),
-                                size=(200, 25))  # , value=comment)
+                                size=(200, 25))
 
         ok = wx.Button(self, wx.ID_OK)
         ok.SetDefault()

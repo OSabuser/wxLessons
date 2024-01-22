@@ -1,17 +1,15 @@
 
 from gen_wizard import wx, CodeGenerationWizard, CodeGenerationWizardPage
 from usr_data import ParametersDataBase
-import configparser
 
 
 def main():
     tester = ParametersDataBase('code_database.ini')
 
-    pages = []
-
     app = wx.App()
     wizard = CodeGenerationWizard(None, wx.ID_ANY, "Software S/N Gen v1.0")
 
+    pages = []
     # Создание страниц wx.adv.wizard, заполнение их данными из файла code_database
     for idx, key in enumerate(tester.get_all_keys()):
         pages.append(CodeGenerationWizardPage(wizard, key, tester, idx))
@@ -30,7 +28,6 @@ def main():
     if state:
         print(f"Шифр ПО:  {'.'.join(tester.get_software_code())}")
         # debug --> print(tester.show_user_data(config.sections()[0]))
-
         # Запись изменений в файл
         tester.save_changes()
 
