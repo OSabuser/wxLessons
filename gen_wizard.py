@@ -4,6 +4,43 @@ from gen_dialog import ValueSetupDialog
 from usr_data import ParametersDataBase
 
 
+# from wx.lib.pubsub import pub
+
+
+class MainWizardClass:
+    def __init__(self, parent, ini_filename):
+        self.wizard_instance = CodeGenerationWizard(None, wx.ID_ANY, "Software S/N Gen")
+        self.database_instance = ParametersDataBase(ini_filename)
+        self.pages = []
+        self.parent_window = parent
+
+        print(parent)
+
+        # Создание страниц wx.adv.wizard, заполнение их данными из файла code_database
+        for idx, key in enumerate(self.database_instance.get_all_keys()):
+            self.pages.append(CodeGenerationWizardPage(self.wizard_instance, key, self.database_instance, idx))
+
+        self.wizard_instance.FitToPage(self.pages[0])
+
+        # Set the initial order of the pages
+        for number in range(len(self.pages) - 1):
+            self.pages[number].SetNext(self.pages[number + 1])
+            self.pages[number + 1].SetPrev(self.pages[number])
+
+        self.wizard_instance.GetPageAreaSizer().Add(self.pages[0])
+        state = self.wizard_instance.RunWizard(self.pages[0])
+
+        if state:
+            software_code = '.'.join(self.database_instance.get_software_code())
+            print(f"Шифр ПО:  {software_code}")
+            # debug --> print(tester.show_user_data(config.sections()[0]))
+            # Запись изменений в файл
+            self.database_instance.save_changes()
+            self.parent_window.control.SetLabelText(software_code)
+
+        self.wizard_instance.Destroy()
+
+
 class CodeGenerationWizard(wx.adv.Wizard):
     def __init__(self, parent, wiz_id, title):
         wx.adv.Wizard.__init__(self, parent, wiz_id)

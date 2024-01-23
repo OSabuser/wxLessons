@@ -1,4 +1,4 @@
-from gen_wizard import wx, CodeGenerationWizard, CodeGenerationWizardPage
+from gen_wizard import wx, MainWizardClass
 from usr_data import ParametersDataBase
 
 
@@ -28,18 +28,18 @@ class MainPanel(wx.Panel):
         self.control = wx.TextCtrl(self, size=(250, 32), style=wx.TE_CENTER)
         self.control.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        #self.control.AppendText("МЮ.TFT.88.01.01.V.N.C.03.03.046.01.v1")
+        # self.control.AppendText("МЮ.TFT.88.01.01.V.N.C.03.03.046.01.v1")
 
         quote = wx.StaticText(self, label="Серийный номер")
         quote.SetFont(wx.Font(16, wx.DEFAULT, wx.FONTSTYLE_NORMAL, wx.NORMAL))
 
-        #self.control.SetLabelText("МЮ.TFT.88.01.01.V.N.C.03.03.046.01.v1")
+        # self.control.SetLabelText("МЮ.TFT.88.01.01.V.N.C.03.03.046.01.v1")
 
         button_panel = wx.Panel(self)
         decode_btn = wx.Button(button_panel, wx.ID_ANY, 'РАСШИФРОВАТЬ', size=(200, 36))
-        generate_btn = wx.Button(button_panel, wx.ID_ANY, 'СГЕНЕРИРОВАТЬ', size=(200, 36))
+        generate_btn = wx.Button(button_panel, wx.ID_ANY, 'СОЗДАТЬ', size=(200, 36))
 
-        generate_btn.SetFocus() # Кнопка "Сгенерировать" выделена по умолчанию
+        generate_btn.SetFocus()  # Кнопка "Сгенерировать" выделена по умолчанию
 
         button_horizontal_sizer = wx.BoxSizer(wx.HORIZONTAL)
         button_horizontal_sizer.Add(generate_btn, 0, wx.RIGHT, 20)
@@ -61,6 +61,8 @@ class MainPanel(wx.Panel):
 
     def OnGenerateTouch(self, event):
         print(f"Pressed OnGenerate")
+        test = MainWizardClass(self, 'code_database.ini')
+
     def OnDecodeTouch(self, event):
         print(f"Pressed OnDecode")
 
@@ -69,7 +71,7 @@ def main():
     app = wx.App()
 
     # tester = ParametersDataBase('code_database.ini')
-    # wizard = CodeGenerationWizard(None, wx.ID_ANY, "Software S/N Gen v1.0")
+    # wizard = CodeGenerationWizard(None, wx.ID_ANY, "Software S/N Gen")
     #
     # pages = []
     # # Создание страниц wx.adv.wizard, заполнение их данными из файла code_database
@@ -98,6 +100,7 @@ def main():
     frame = MainFrame(None, title="Software S/N handler", size=(480, 180), path_to_icon="app_logo.png")
     panel = MainPanel(frame)
     frame.Show()
+
     app.MainLoop()
 
 
