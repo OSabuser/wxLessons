@@ -1,17 +1,21 @@
 from gen_wizard import wx, MainWizardClass
+from dec_window import DecodeFrame
 
 
 class MainFrame(wx.Frame):
-    def __init__(self, parent, title, size, path_to_icon, path_to_database, version):
+    def __init__(self, parent, title, path_to_icon, path_to_database, version):
         style = wx.SYSTEM_MENU | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX
-        wx.Frame.__init__(self, parent, title=title, style=style, size=size)
+
+        wx.Frame.__init__(self, parent, title=title, style=style, size=(480, 180))
 
         self.path_to_file = path_to_database
+        self.path_to_icon = path_to_icon
+        self.title = title
 
         self.__version = version
         version_size = wx.Window.GetTextExtent(self, self.__version)
 
-        self.SetIcon(wx.Icon(path_to_icon))
+        self.SetIcon(wx.Icon(self.path_to_icon))
 
         self.status_bar = self.CreateStatusBar(2)
 
@@ -63,4 +67,11 @@ class MainPanel(wx.Panel):
         test = MainWizardClass(self, self.parent.path_to_file)
 
     def OnDecodeTouch(self, event):
-        print(f"Pressed OnDecode")
+        serial_number_to_decode = self.control.GetValue()
+        if len(serial_number_to_decode) > 0:
+            decode_frame = DecodeFrame(self, self.parent.title, path_to_icon=self.parent.path_to_icon,
+                                       serial_number=serial_number_to_decode,
+                                       path_to_database=self.parent.path_to_file)
+            decode_frame.Show()
+        else:
+            wx.MessageBox(f"Поле серийного номера не должно быть пустым!", "Ошибка", wx.ICON_ERROR)

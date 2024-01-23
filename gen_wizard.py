@@ -44,7 +44,6 @@ class MainWizardClass:
             self.wizard_instance.Destroy()
 
 
-
 class CodeGenerationWizard(wx.adv.Wizard):
     def __init__(self, parent, wiz_id, title):
         wx.adv.Wizard.__init__(self, parent, wiz_id)
@@ -157,12 +156,13 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
         return self.__page_number
 
     def OnChar(self, event):
-        typed_chars = event.GetString()
-        possible_idx = self.list.FindItem(start=-1, str=typed_chars, partial=True)
+        typed_chars = event.GetString().lower()
 
-        if possible_idx != wx.NOT_FOUND:
-            # Debug ---> print(possible_idx, self.list.GetItemText(possible_idx, col=0))
-            self.list.Select(possible_idx)
+        for idx in range(self.list.GetItemCount()):
+            if typed_chars in self.list.GetItemText(idx, col=1).lower():
+                self.list.Select(idx)
+                self.list.EnsureVisible(idx)
+                break
 
     def OnRename(self, event):
         selected_item = self.list.GetFirstSelected()
