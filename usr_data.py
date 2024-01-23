@@ -8,7 +8,7 @@ class ParametersDataBase:
         self.__software_code = []
         self.__config_file_path = ini_filename
         self.__is_something_changed = False
-        self.__parse_ini_data(self.__config_file_path)
+        self.is_everything_ok = self.__parse_ini_data(self.__config_file_path)
 
     def __parse_ini_data(self, filename):
         if os.path.isfile(filename):
@@ -17,8 +17,10 @@ class ParametersDataBase:
             # Считывание данных посекционно в объект - базу-данных tester
             for section in config.sections():
                 self.__add_user_data(section, [(key.upper(), config[section][key]) for key in config[section]])
+
+            return True
         else:
-            raise SystemExit(f"Не удалось найти файл конфигурации {filename}")
+            return False
 
     def save_changes(self):
         if self.__is_something_changed:
@@ -33,9 +35,11 @@ class ParametersDataBase:
 
             with open(self.__config_file_path, 'w', encoding="utf-8") as configfile:
                 config.write(configfile)
+
+            print(f"Изменения сохранены в {self.__config_file_path}.")
+
         else:
             print(f"В файл {self.__config_file_path} не было внесено изменений!")
-
 
     def __add_user_data(self, key, data):
         if key not in self.__user_data.keys():
