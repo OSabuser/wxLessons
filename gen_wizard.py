@@ -114,6 +114,7 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
 
     def get_page_number(self):
         return self.__page_number
+
     def OnChar(self, event):
         typed_chars = event.GetString()
         possible_idx = self.list.FindItem(start=-1, str=typed_chars, partial=True)
@@ -135,7 +136,6 @@ class CodeGenerationWizardPage(wx.adv.WizardPage):
 
             self.__data_class.set_user_data(self.__title, selected_item,
                                             (self.__names['Name'], self.__names['Comment']), append=False)
-
 
             # Debug ---> self.__data_class.show_user_data(self.__title)
             self.__names['Name'] = ""
